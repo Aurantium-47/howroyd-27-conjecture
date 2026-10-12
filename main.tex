@@ -1,0 +1,716 @@
+\documentclass[11pt]{article}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage{amsmath,amsthm,amssymb,booktabs,longtable}
+\usepackage[hidelinks]{hyperref}
+\setlength{\emergencystretch}{2em}
+
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{corollary}[theorem]{Corollary}
+\newcommand{\Z}{\mathbb Z}
+\newcommand{\N}{\mathbb Z_{\geq 0}}
+\newcommand{\one}{\mathbf 1}
+
+\title{Twenty-seven maximum independent sets in triangular grid graphs}
+\author{}
+\date{2026-10-13}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+Let \(G_3(d)\) have as vertices the nonnegative integer triples of sum
+\(d\), with two vertices adjacent when their \(\ell_1\) distance is \(2\).
+We prove that \(G_3(d)\) has exactly \(27\) maximum independent sets
+whenever \(d\geq10\) and \(3\nmid d\). We also describe all of them:
+each agrees with one of the three natural color classes away from
+the three radius-three corners, and each color class has exactly nine
+corner extensions. The proof uses an explicit rational triangle cover
+with \(89\) weights. A coordinate reduction verifies the cover for every
+allowed \(d\); saturation and a balancing argument then reduce the
+classification to three ten-vertex problems. Together with Machacek's
+uniqueness theorem for \(3\mid d\), the result gives Howroyd's eventual
+period-three formula.
+\end{abstract}
+
+\section{Introduction and statement}\label{sec:intro}
+
+For \(d\geq0\), put
+\[
+ V_d=\{(x_1,x_2,x_3)\in\N^3:x_1+x_2+x_3=d\}.
+\]
+The graph \(G_3(d)\) has vertex set \(V_d\), with distinct vertices \(u,v\)
+adjacent if and only if \(\|u-v\|_1=2\).
+Write \(\alpha_3(d)\) for its independence number and \(a_3(d)\) for the
+number of independent sets of that size. Sets are counted with their
+coordinates: no quotient by rotations, reflections, or graph
+isomorphisms is taken. This is also the monomial graph used by
+Machacek~\cite{machacek}, since, for \(u,v\in V_d\),
+\[
+ \deg\operatorname{lcm}(x^u,x^v)
+   =d+\tfrac12\|u-v\|_1.
+\]
+
+Howroyd's conjecture, recorded in OEIS A297557 on 1 January
+2018~\cite{oeis} and stated as Conjecture~1.1
+in~\cite{machacek}, is
+\begin{equation}\label{eq:howroyd}
+ a_3(d)=
+ \begin{cases}
+  1,&3\mid d,\\
+  27,&3\nmid d
+ \end{cases}
+ \qquad(d\geq9).
+\end{equation}
+Machacek's Theorem~2.1 establishes the divisible case.
+Appendix~\ref{app:machacek} records a local correction to a deletion
+statement in the cited arXiv version; it is separate from our proof of
+the nondivisible case.
+
+The independence number is already known. Machacek~\cite[Section~2]{machacek}
+attributes its formula to Geramita, Gregory, and Roberts.
+For \(d\geq10\) with \(3\nmid d\), it is
+\(\alpha_3(d)=\binom{d+2}{2}/3\).
+The same size result appears in Zabokritskiy's
+Theorem~4.2~\cite{covers} and in Proposition~17 of
+Kreindel, Barouch Essayag, and Zabokritskiy~\cite{codes}.
+Corollary~18 of the latter paper gives uniqueness for positive degrees
+divisible by \(3\), excluding degree \(6\), and cites Machacek.
+These results do not count the maximum sets in the two nondivisible
+residue classes. Weighted local covers and their finite-state
+formulation already appear in~\cite[Section~3]{covers}.
+Here a particular exact cover is used to control equality and classify
+all maximum sets; the general covering method is not claimed as new.
+
+Define the proper three-coloring
+\[
+ \chi(v)=v_1-v_2\pmod3,\qquad
+ C_j=\{v\in V_d:\chi(v)=j\}\quad(j\in\Z/3\Z),
+\]
+and the body and corners
+\begin{equation}\label{eq:body-corners}
+ B_d=\{v\in V_d:\max_i v_i\leq d-4\},\qquad
+ K_i=\{v\in V_d:v_i\geq d-3\}\quad(1\leq i\leq3).
+\end{equation}
+For \(d\geq10\), the \(K_i\) are disjoint and their union is
+\(V_d\setminus B_d\).
+
+\begin{theorem}\label{thm:main}
+Let \(d\geq10\) and \(3\nmid d\).
+Every maximum independent set of \(G_3(d)\) agrees on \(B_d\) with
+exactly one color class \(C_j\).
+For each \(j\), all its maximum extensions are obtained by making,
+independently at the three corners, the choices in
+Table~\ref{tab:corners}, in the local coordinates of
+Section~\ref{sec:corners} with relative color
+\(\delta_i=j-\chi(de_i)\pmod3\).
+There are exactly nine extensions for each \(j\), and hence
+\[
+ a_3(d)=27.
+\]
+\end{theorem}
+
+Thus Theorem~\ref{thm:main}, together with the cited divisible case,
+gives~\eqref{eq:howroyd}. The classification is part of the counting
+argument, rather than an additional assertion requiring a separate
+proof.
+
+\section{An exact triangle cover}\label{sec:cover}
+
+Throughout Sections~\ref{sec:cover}--\ref{sec:corners}, assume
+\(d\geq10\) and \(3\nmid d\), and put \(N=|V_d|=\binom{d+2}{2}\).
+Every edge changes \(\chi\), so each \(C_j\) is independent.
+The cyclic permutation \((v_1,v_2,v_3)\mapsto(v_2,v_3,v_1)\)
+changes \(\chi\) to \(\chi-d\) modulo \(3\).
+Consequently the three classes have equal size \(N/3\).
+
+Let \(e_1,e_2,e_3\) be the standard basis vectors. For nonnegative
+integer triples \(b\), define the triangles
+\[
+ \begin{aligned}
+ U(b)&=\{b+e_1,b+e_2,b+e_3\},
+       &&b_1+b_2+b_3=d-1,\\
+ D(b)&=\{b+e_1+e_2,b+e_1+e_3,b+e_2+e_3\},
+       &&b_1+b_2+b_3=d-2.
+ \end{aligned}
+\]
+They are three-vertex cliques. Let \(\mathcal T_d\) be the family of
+these triangles. Define
+\[
+ \rho(t)=
+ \begin{cases}
+ t,&0\leq t\leq3,\\
+ 4+((t-4)\bmod3),&t\geq4.
+ \end{cases}
+\]
+The key of \(T=U(b)\) or \(D(b)\) is
+\[
+ \bigl(d\bmod3,\operatorname{type}(T),
+       \operatorname{sort}(\rho(b_1),\rho(b_2),\rho(b_3))\bigr).
+\]
+Table~\ref{tab:weights} gives an integer \(W(T)\) for each of the
+\(89\) keys that occur, and we set \(w(T)=W(T)/60\).
+
+\begin{lemma}[Exact cover]\label{lem:cover}
+Every triangle in \(\mathcal T_d\) has a key in
+Table~\ref{tab:weights}, all its weights are nonnegative, and
+\begin{equation}\label{eq:exact-cover}
+ \sum_{\substack{T\in\mathcal T_d\\v\in T}}W(T)=60
+ \qquad(v\in V_d).
+\end{equation}
+\end{lemma}
+
+\begin{proof}
+The triangles incident with \(v\) are exactly
+\[
+ U(v-e_i)\quad(v_i>0),\qquad
+ D(v-e_i-e_j)\quad(i<j,\ v_i,v_j>0).
+\]
+For \(10\leq d\leq21\), \(3\nmid d\), direct integer addition using
+Table~\ref{tab:weights} verifies all \(1134\) vertex equations.
+All incident keys are present, all \(89\) table entries occur in this
+range, and their weights are nonnegative. This finite check is
+implemented in \texttt{verify\_howroyd\_certificate.py};
+Section~\ref{sec:computation} specifies the computations.
+
+If \(d>21\), some coordinate \(v_i\) is at least \(8\).
+Set \(v'=v-3e_i\in V_{d-3}\).
+The \(i\)-th base coordinate of any incident triangle is either \(v_i\)
+or \(v_i-1\). Before and after subtraction of \(3\), that coordinate
+is at least \(4\), so its \(\rho\)-value is unchanged.
+The existence conditions for all incident triangles are also
+unchanged, as are the other coordinates and \(d\bmod3\).
+Thus the incident triangles correspond term by term, with identical
+keys. Repeated reduction reaches the checked range
+\(10\leq d\leq21\) without dropping below \(10\).
+This proves both~\eqref{eq:exact-cover} and the absence of missing
+keys at larger degrees.
+\end{proof}
+
+\begin{corollary}[Saturation]\label{cor:saturation}
+The independence number is \(N/3\). If \(I\) is a maximum independent
+set, then
+\[
+ |I\cap T|=1\qquad\text{for every \(T\in\mathcal T_d\) with \(w(T)>0\)}.
+\]
+\end{corollary}
+
+\begin{proof}
+For every independent set \(I\), the exact cover gives
+\[
+ |I|=\sum_{T\in\mathcal T_d}w(T)|I\cap T|
+ \leq\sum_{T\in\mathcal T_d}w(T)
+ =\frac13\sum_{v\in V_d}\sum_{T\ni v}w(T)
+ =\frac N3.
+\]
+The color classes attain this bound. For a maximum set,
+\[
+ 0=\frac N3-|I|
+   =\sum_{T\in\mathcal T_d}w(T)(1-|I\cap T|).
+\]
+Every summand is nonnegative, so each triangle with positive weight
+is met exactly once.
+\end{proof}
+
+\section{Propagation and constancy on the body}\label{sec:body}
+
+The zero entries of Table~\ref{tab:weights} have a simple description.
+If the actual base coordinates are sorted as \(s\leq t\leq u\), then
+\begin{equation}\label{eq:zeros}
+ \begin{aligned}
+ W(U(b))=0
+  &\ \Longleftrightarrow\
+       (s,t)\in\{(0,1),(1,1),(1,2)\},\quad u\geq4,\\
+ W(D(b))=0
+  &\ \Longleftrightarrow\
+       (s,t)\in\{(0,0),(0,2),(1,1)\},\quad u\geq4.
+ \end{aligned}
+\end{equation}
+This equivalence is checked on the \(89\) keys. It applies to actual
+coordinates because \(\rho(t)\leq2\) if and only if \(t\leq2\), and
+\(\rho(t)\geq4\) if and only if \(t\geq4\).
+
+Fix a maximum independent set \(I\), and write \(f(v)=\one_{\{v\in I\}}\).
+If two positive-weight triangles share an edge, their saturation
+equations show that \(f\) has the same value at their two opposite
+vertices. In particular, for \(v_i\geq2\), put
+\[
+ F_i(v)=v+(1,1,1)-3e_i.
+\]
+The triangles \(U(v-e_i)\) and \(D(v-2e_i)\) share the vertices
+\(v-e_i+e_j\) for \(j\ne i\); their opposite vertices are \(v\)
+and \(F_i(v)\). Therefore
+\begin{equation}\label{eq:propagation}
+ f(v)=f(F_i(v))
+\end{equation}
+whenever both weights are positive. The move \(F_i\) preserves
+\(\chi\).
+
+\begin{lemma}[Balancing at a maximum coordinate]\label{lem:move}
+Let \(v\in B_d\), and choose any \(i\) with \(v_i=M=\max_j v_j\).
+Both \(U(v-e_i)\) and \(D(v-2e_i)\) have positive weight, and
+\(F_i(v)\in B_d\).
+\end{lemma}
+
+\begin{proof}
+We have \(M\geq4\), while the two other coordinates have sum at least
+\(4\), since \(M\leq d-4\).
+The upper triangle has base coordinates \(M-1,v_j,v_k\).
+Because \(M-1\geq3\), the two small coordinates in a zero pattern
+in~\eqref{eq:zeros} would have to be \(v_j,v_k\).
+Their sum is at least \(4\), whereas the upper zero patterns have
+small-coordinate sum at most \(3\). Thus this weight is positive.
+
+The lower triangle has base coordinates \(M-2,v_j,v_k\).
+If \(M\geq5\), the same argument applies.
+If \(M=4\), the changed coordinate is \(2\).
+A zero pattern not using this \(2\) is excluded by
+\(v_j+v_k\geq4\).
+The only lower zero pattern that can use it is \((0,2)\);
+but the third original coordinate is at most \(4\), which would give
+\(d\leq4+0+4=8\), a contradiction.
+
+The decreased coordinate of \(F_i(v)\) is \(M-2\leq d-6\).
+For either other coordinate \(v_j\), maximality of \(M\) gives
+\(2v_j\leq M+v_j\leq d\), hence
+\[
+ v_j+1\leq\lfloor d/2\rfloor+1\leq d-4
+ \qquad(d\geq10).
+\]
+All new coordinates are nonnegative. Thus \(F_i(v)\) remains in \(B_d\).
+\end{proof}
+
+\begin{lemma}\label{lem:constant}
+For each \(j\in\Z/3\Z\), \(f\) is constant on \(B_d\cap C_j\).
+\end{lemma}
+
+\begin{proof}
+Write \(d=3k+r\), with \(r\in\{1,2\}\); here \(k\geq3\).
+Whenever the maximum coordinate is \(M\geq k+2\), perform a move
+from Lemma~\ref{lem:move}. For the nonnegative integer potential
+\(\Phi(v)=v_1^2+v_2^2+v_3^2\), the change is
+\[
+ \Phi(F_i(v))-\Phi(v)=2d-6M+6\leq2r-6<0.
+\]
+The process therefore terminates, preserving the body, color, and
+value of \(f\).
+
+At termination all coordinates are at most \(k+1\).
+For \(r=2\), the only possibilities are the three permutations of
+\((k,k+1,k+1)\); they have distinct colors.
+For \(r=1\), the possibilities are the permutations of
+\((k+1,k,k)\) and \((k-1,k+1,k+1)\).
+There is one point of each color in each of these two families.
+Matching points are joined by a maximum-coordinate move, as in
+\[
+ (k+1,k,k)\longmapsto(k-1,k+1,k+1).
+\]
+These moves are allowed by Lemma~\ref{lem:move}; no decrease of the
+potential is needed for this final connection.
+Consequently all starting points of a given color have the same
+value of \(f\).
+\end{proof}
+
+\begin{corollary}[One color on the body]\label{cor:body}
+There is exactly one \(j\in\Z/3\Z\) such that
+\[
+ I\cap B_d=C_j\cap B_d.
+\]
+\end{corollary}
+
+\begin{proof}
+For \(r=1\), the triangle \(U(k,k,k)\) lies in \(B_d\) and has
+positive weight. For \(r=2\), use \(U(k+1,k,k)\).
+Indeed \(k\geq3\), their base coordinates exclude the zero
+patterns~\eqref{eq:zeros}, and their vertex coordinates are at most
+\(k+2\leq d-4\).
+Each triangle has one vertex of each color. The three binary
+constants from Lemma~\ref{lem:constant} sum to \(1\) by saturation.
+Exactly one is therefore \(1\), and all three color classes occur
+in the body.
+\end{proof}
+
+\section{The corner configurations and the count}\label{sec:corners}
+
+The graph distance from \(v\) to \(de_i\) is \(d-v_i\).
+Thus each \(K_i\) is a radius-three corner with ten vertices.
+For vertices in distinct corners their graph distance is at least
+\(d-6\geq4\), so there are no edges between corners.
+Use the following coordinate maps:
+\begin{equation}\label{eq:corner-maps}
+ \begin{aligned}
+ \psi_1(p,q)&=(d-p-q,p,q),\\
+ \psi_2(p,q)&=(q,d-p-q,p),\\
+ \psi_3(p,q)&=(p,q,d-p-q).
+ \end{aligned}
+\end{equation}
+In each case \(p,q\geq0\) and \(p+q\leq3\) describe the corner;
+adjacency is given by the six differences
+\(\pm(1,0),\pm(0,1),\pm(1,-1)\).
+The only body vertices adjacent to the corner are on \(p+q=4\).
+That whole layer lies in \(B_d\): its coordinates are \(d-4,p,q\)
+with \(p,q\leq4\leq d-4\).
+
+Put \(c_i=\chi(de_i)\), so \((c_1,c_2,c_3)=(d,-d,0)\) modulo \(3\).
+Direct substitution in~\eqref{eq:corner-maps} gives
+\[
+ \chi(\psi_i(p,q))=c_i+p-q\pmod3.
+\]
+For a fixed body color \(j\), the selected vertices of the outer
+layer therefore satisfy
+\[
+ p-q\equiv\delta_i\pmod3,\qquad \delta_i=j-c_i.
+\]
+In particular, relative color \(0\) means that the background color
+contains the corner vertex.
+
+\begin{lemma}[Corner enumeration]\label{lem:corners}
+Fix \(\delta\in\Z/3\Z\) and the vertices of \(p+q=4\) with
+\(p-q\equiv\delta\pmod3\).
+Among independent sets in \(p,q\geq0,\ p+q\leq3\) having no
+neighbor among those fixed vertices, all sets of maximum size are
+exactly those in Table~\ref{tab:corners}.
+\end{lemma}
+
+\begin{proof}
+This is a finite enumeration on ten vertices.
+For \(\delta=0,1,2\), respectively, deleting vertices adjacent to the
+fixed outer layer leaves \(8,7,7\) available vertices.
+Enumerate all subsets of the available vertices, discard those
+containing one of the six adjacency differences, and retain those
+of largest size. The resulting sets are precisely the seven rows
+of Table~\ref{tab:corners}.
+The original certificate verifier implements this enumeration
+directly from the corner graph and its fixed outer layer.
+An independent implementation also enumerates all \(2^{10}\)
+subsets before applying the same independence and compatibility
+conditions.
+\end{proof}
+
+\begin{table}[htbp]
+\centering
+\small
+\begin{tabular}{ccl}
+\toprule
+Relative color \(\delta\)&Maximum size&All maximum corner sets\\
+\midrule
+0&4&\(\{(0,0),(0,3),(1,1),(3,0)\}\)\\
+\midrule
+1&3&\(\{(0,0),(0,2),(2,0)\}\)\\
+ & &\(\{(0,0),(0,2),(2,1)\}\)\\
+ & &\(\{(0,2),(1,0),(2,1)\}\)\\
+\midrule
+2&3&\(\{(0,0),(0,2),(2,0)\}\)\\
+ & &\(\{(0,0),(1,2),(2,0)\}\)\\
+ & &\(\{(0,1),(1,2),(2,0)\}\)\\
+\bottomrule
+\end{tabular}
+\caption{Complete corner choices compatible with the fixed outer layer.
+Coordinates are \((p,q)\) as in~\eqref{eq:corner-maps}.}
+\label{tab:corners}
+\end{table}
+
+\begin{proof}[Proof of Theorem~\ref{thm:main}]
+Corollary~\ref{cor:body} determines a unique body color \(j\).
+Since \(3\nmid d\), the three corner colors \(d,-d,0\) are distinct,
+and hence the relative colors \(\delta_i\) are \(0,1,2\) in some order.
+The background color has \(4,3,3\) vertices in these respective
+corners, so it has \(N/3-10\) vertices in the body.
+
+Every maximum independent set has size \(N/3\).
+By Lemma~\ref{lem:corners}, the sum of its three corner sizes is at
+most \(4+3+3=10\); equality in the total size forces each corner
+to attain its local maximum. There are consequently
+\(1\cdot3\cdot3=9\) choices for the fixed body color.
+Conversely, every such choice is compatible with the body;
+distinct corners have no edges between them. It is an independent
+set of size \(N/3\), hence is maximum.
+Different choices within one background give different sets, and
+different backgrounds are already distinct on the body.
+There are therefore \(3\cdot9=27\) maximum independent sets, with
+exactly the stated classification.
+\end{proof}
+
+\section{Computation and reproducibility}\label{sec:computation}
+
+The final certificate consists solely of the \(89\) nonnegative
+integer numerators in Table~\ref{tab:weights}, also supplied as
+\texttt{howroyd\_cover\_weights.csv}; every denominator is \(60\).
+Floating-point linear programming was used during the search for
+weights. Neither its output tolerances nor a numerical optimality
+claim are assumptions of the proof. The original verifier uses
+integer arithmetic and finite-set operations, reads the CSV, and
+does not import the search code.
+
+With the two Python programs and CSV in the same directory, run
+the following commands using Python~3.10 or later and its standard
+library:
+\begingroup
+\footnotesize
+\begin{verbatim}
+python verify_howroyd_certificate.py
+python referee_checks.py structural --csv howroyd_cover_weights.csv
+python referee_checks.py dp --max-degree 20
+\end{verbatim}
+\endgroup
+The structural command uses its default maximum degree \(60\).
+The explicit \texttt{--csv} argument avoids dependence on the
+independent checker's original \texttt{submission/} directory layout.
+
+The original verifier checks the \(89\) entries, all \(1134\)
+base vertex equations, the exact zero-weight patterns, and the
+corner enumeration. Its further diagnostics check \(34\,800\)
+vertex equations at degrees \(31,32,49,50,100,101,202\) and
+\(24\,684\) body moves at nondivisible degrees from \(10\) through \(60\).
+These additional diagnostics are not needed for the
+all-degree reduction in Lemma~\ref{lem:cover}.
+
+The separately written program \texttt{referee\_checks.py} does
+not import the original verifier.
+Its structural mode reconstructs adjacency and finds triangles
+as graph cliques. For \(10\leq d\leq60\), \(3\nmid d\), it checks
+\(25\,704\) vertex equations, \(47\,821\) triangles, and \(25\,296\)
+maximum-coordinate moves, including every choice when maxima tie.
+It also checks the body color components and the corner
+configurations; for the \(16\) nondivisible degrees from \(10\)
+through \(32\), it constructs and checks the \(27\) distinct
+maximum-size extensions. The structural mode still uses the same
+weight certificate.
+
+Its full-graph dynamic program is a separate cross-check.
+It processes rows of lengths \(1,2,\ldots,d+1\), recording the
+largest size and its number of realizations for each independent
+row mask. A short-row mask \(s\) and the following long-row mask
+\(t\) are compatible exactly when
+\[
+ s\mathbin{\&}\bigl(t\mathbin{|}(t\mathbin{\gg}1)\bigr)=0,
+\]
+where the operations are bitwise. Each vertex set has a unique
+row representation. This computation does not use the weights,
+body classification, or a prescribed answer \(27\).
+It was run for every \(d=0,\ldots,20\); in particular it gives
+\[
+ a_3(7)=28,\quad a_3(8)=32,\quad
+ a_3(9)=a_3(12)=a_3(15)=a_3(18)=1
+\]
+and \(a_3(d)=27\) for
+\(d\in\{10,11,13,14,16,17,19,20\}\).
+The original verifier, structural checks, and dynamic program
+were rerun locally and reproduced the recorded results.
+These are finite checks. The assertions for every allowed degree
+use the coordinate reduction and balancing proofs above.
+
+\section{Provenance and verification status}\label{sec:provenance}
+
+The initial argument and certificate arose from exploration with
+ChatGPT Pro. A separate ChatGPT Pro conversation reviewed the
+submitted proof, returned an acceptance verdict, and supplied the
+independent finite-check program. Codex performed faithful editing,
+reference checks, and local reruns of the programs.
+This manuscript has not received human expert review, and there is
+no complete Lean or other proof-assistant formalization.
+The literature search completed for this draft did not locate an
+earlier proof of the full \(27\)-set statement; that search was not
+exhaustive and does not establish priority.
+The references below identify the versions examined. In particular,
+Machacek's published journal text was not obtained for comparison
+with the cited arXiv version.
+
+\appendix
+\section{A boundary-deletion correction in the divisible case}
+\label{app:machacek}
+
+This note concerns only the cited proof of the known divisible
+case, not Theorem~\ref{thm:main}.
+On page~5 of the arXiv version of~\cite{machacek}, the proof of
+Theorem~2.1 takes \(d=3k\), identifies a forced boundary independent
+set \(J\) of size \(3k=d\), and writes
+\(G'''=G_3(d)\setminus J\cong G_3(d-3)\).
+With ordinary vertex deletion, this is not literally correct.
+The entire boundary
+\[
+ \partial V_d=\{v\in V_d:\min_i v_i=0\}
+\]
+has \(3d=9k\) vertices for \(d>0\). Deleting only \(J\) therefore
+leaves \(6k\) more vertices than \(G_3(d-3)\).
+
+The required correction is local to that step.
+The preceding argument on each boundary side \(X_i\) gives
+\(|I\cap X_i|=k+1\) and forces \(J\cap X_i\subseteq I\cap X_i\)
+with \(|J\cap X_i|=k+1\). Hence
+\[
+ I\cap\partial V_d=J.
+\]
+Delete the whole boundary and put
+\[
+ H=G_3(d)[V_d\setminus\partial V_d].
+\]
+Subtracting \((1,1,1)\) gives \(H\cong G_3(d-3)\).
+Equation~(2.3) of~\cite{machacek} then gives
+\[
+ |I\setminus J|
+   =\alpha_3(d)-3k
+   =\alpha_3(d-3)
+   =\alpha(H).
+\]
+Thus \(I\setminus J\) is a maximum independent set of \(H\), and
+the stated induction continues: its inductive step has \(k>3\),
+so \(d-3\geq9\).
+This is an explicit correction to the wording of the examined
+version, not a quotation of a correction made by its author or
+a new attribution of the uniqueness theorem.
+
+\section{The complete integer certificate}\label{app:weights}
+
+In Table~\ref{tab:weights}, \(r=d\bmod3\), \(\tau\) is the triangle
+type, and \(a\leq b\leq c\) are the sorted \(\rho\)-values of its
+base coordinates, not the unmodified coordinates. The final column
+is \(W=60w\). The table contains all \(89\) rows of
+\nolinkurl{howroyd_cover_weights.csv}.
+
+\small
+\begin{longtable}{cccccr}
+\caption{Integer numerators of the exact triangle cover.}
+\label{tab:weights}\\
+\toprule
+\(r\)&\(\tau\)&\(a\)&\(b\)&\(c\)&\(W\)\\
+\midrule
+\endfirsthead
+\multicolumn{6}{c}{Table \thetable\ (continued)}\\
+\toprule
+\(r\)&\(\tau\)&\(a\)&\(b\)&\(c\)&\(W\)\\
+\midrule
+\endhead
+\midrule
+\multicolumn{6}{r}{Continued on next page}\\
+\endfoot
+\bottomrule
+\endlastfoot
+1&D&0&0&5&0\\
+1&D&0&1&4&30\\
+1&D&0&2&6&0\\
+1&D&0&3&5&5\\
+1&D&0&4&4&10\\
+1&D&0&5&6&3\\
+1&D&1&1&6&0\\
+1&D&1&2&5&22\\
+1&D&1&3&4&13\\
+1&D&1&4&6&15\\
+1&D&1&5&5&16\\
+1&D&2&2&4&3\\
+1&D&2&3&3&24\\
+1&D&2&3&6&17\\
+1&D&2&4&5&12\\
+1&D&2&6&6&10\\
+1&D&3&3&5&3\\
+1&D&3&4&4&24\\
+1&D&3&5&6&10\\
+1&D&4&4&6&17\\
+1&D&4&5&5&17\\
+1&D&5&6&6&17\\
+1&U&0&0&6&60\\
+1&U&0&1&5&0\\
+1&U&0&2&4&30\\
+1&U&0&3&6&30\\
+1&U&0&4&5&25\\
+1&U&0&6&6&32\\
+1&U&1&1&4&0\\
+1&U&1&2&6&0\\
+1&U&1&3&5&3\\
+1&U&1&4&4&4\\
+1&U&1&5&6&3\\
+1&U&2&2&5&16\\
+1&U&2&3&4&3\\
+1&U&2&4&6&8\\
+1&U&2&5&5&6\\
+1&U&3&3&3&3\\
+1&U&3&3&6&17\\
+1&U&3&4&5&3\\
+1&U&3&6&6&17\\
+1&U&4&4&4&3\\
+1&U&4&5&6&3\\
+1&U&5&5&5&3\\
+1&U&6&6&6&3\\
+2&D&0&0&6&0\\
+2&D&0&1&5&30\\
+2&D&0&2&4&0\\
+2&D&0&3&6&3\\
+2&D&0&4&5&3\\
+2&D&0&6&6&6\\
+2&D&1&1&4&0\\
+2&D&1&2&6&24\\
+2&D&1&3&5&15\\
+2&D&1&4&4&6\\
+2&D&1&5&6&8\\
+2&D&2&2&5&3\\
+2&D&2&3&4&24\\
+2&D&2&4&6&17\\
+2&D&2&5&5&3\\
+2&D&3&3&3&3\\
+2&D&3&3&6&3\\
+2&D&3&4&5&10\\
+2&D&3&6&6&3\\
+2&D&4&4&4&3\\
+2&D&4&5&6&3\\
+2&D&5&5&5&3\\
+2&D&6&6&6&3\\
+2&U&0&0&4&60\\
+2&U&0&1&6&0\\
+2&U&0&2&5&30\\
+2&U&0&3&4&30\\
+2&U&0&4&6&27\\
+2&U&0&5&5&30\\
+2&U&1&1&5&0\\
+2&U&1&2&4&0\\
+2&U&1&3&6&3\\
+2&U&1&4&5&9\\
+2&U&1&6&6&7\\
+2&U&2&2&6&12\\
+2&U&2&3&5&3\\
+2&U&2&4&4&3\\
+2&U&2&5&6&17\\
+2&U&3&3&4&3\\
+2&U&3&4&6&10\\
+2&U&3&5&5&3\\
+2&U&4&4&5&17\\
+2&U&4&6&6&17\\
+2&U&5&5&6&17\\
+\end{longtable}
+\normalsize
+
+\begin{thebibliography}{9}
+
+\bibitem{oeis}
+OEIS Foundation Inc.,
+\emph{The On-Line Encyclopedia of Integer Sequences},
+entry A297557.
+Howroyd's conjecture dated 1 January 2018 and Machacek's comment
+dated 1 May 2021.
+\url{https://oeis.org/A297557/internal}.
+Consulted 13 October 2026.
+
+\bibitem{machacek}
+John Machacek,
+\emph{Unique maximum independent sets in graphs on monomials of a
+fixed degree},
+arXiv:2010.11112v2, 14 March 2021.
+\url{https://arxiv.org/abs/2010.11112v2}.
+
+\bibitem{covers}
+Aryeh Lev Zabokritskiy (Yohananov),
+\emph{Independent Sets in Multiset Profile Graphs via Weighted
+Local Covers},
+arXiv:2607.13733v3, 4 August 2026.
+\url{https://arxiv.org/abs/2607.13733v3}.
+
+\bibitem{codes}
+Avraham Kreindel, Isaac Barouch Essayag, and
+Aryeh Lev Zabokritskiy (Yohananov),
+\emph{Multiset Deletion Codes: Cyclic Constructions, Bounds, and
+Exact Results},
+arXiv:2601.05636v2, 13 July 2026.
+\url{https://arxiv.org/abs/2601.05636v2}.
+
+\end{thebibliography}
+\end{document}

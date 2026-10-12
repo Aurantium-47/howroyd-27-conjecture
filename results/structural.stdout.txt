@@ -1,0 +1,427 @@
+{
+  "mode": "structural",
+  "max_degree": 60,
+  "elapsed_seconds": 0.7659999999887077,
+  "result": {
+    "weight_keys": 89,
+    "positive_keys": 77,
+    "zero_keys": 12,
+    "degrees": [
+      {
+        "d": 10,
+        "vertices": 66,
+        "triangles": 100,
+        "bulk_components": 3
+      },
+      {
+        "d": 11,
+        "vertices": 78,
+        "triangles": 121,
+        "bulk_components": 3
+      },
+      {
+        "d": 13,
+        "vertices": 105,
+        "triangles": 169,
+        "bulk_components": 3
+      },
+      {
+        "d": 14,
+        "vertices": 120,
+        "triangles": 196,
+        "bulk_components": 3
+      },
+      {
+        "d": 16,
+        "vertices": 153,
+        "triangles": 256,
+        "bulk_components": 3
+      },
+      {
+        "d": 17,
+        "vertices": 171,
+        "triangles": 289,
+        "bulk_components": 3
+      },
+      {
+        "d": 19,
+        "vertices": 210,
+        "triangles": 361,
+        "bulk_components": 3
+      },
+      {
+        "d": 20,
+        "vertices": 231,
+        "triangles": 400,
+        "bulk_components": 3
+      },
+      {
+        "d": 22,
+        "vertices": 276,
+        "triangles": 484,
+        "bulk_components": 3
+      },
+      {
+        "d": 23,
+        "vertices": 300,
+        "triangles": 529,
+        "bulk_components": 3
+      },
+      {
+        "d": 25,
+        "vertices": 351,
+        "triangles": 625,
+        "bulk_components": 3
+      },
+      {
+        "d": 26,
+        "vertices": 378,
+        "triangles": 676,
+        "bulk_components": 3
+      },
+      {
+        "d": 28,
+        "vertices": 435,
+        "triangles": 784,
+        "bulk_components": 3
+      },
+      {
+        "d": 29,
+        "vertices": 465,
+        "triangles": 841,
+        "bulk_components": 3
+      },
+      {
+        "d": 31,
+        "vertices": 528,
+        "triangles": 961,
+        "bulk_components": 3
+      },
+      {
+        "d": 32,
+        "vertices": 561,
+        "triangles": 1024,
+        "bulk_components": 3
+      },
+      {
+        "d": 34,
+        "vertices": 630,
+        "triangles": 1156,
+        "bulk_components": 3
+      },
+      {
+        "d": 35,
+        "vertices": 666,
+        "triangles": 1225,
+        "bulk_components": 3
+      },
+      {
+        "d": 37,
+        "vertices": 741,
+        "triangles": 1369,
+        "bulk_components": 3
+      },
+      {
+        "d": 38,
+        "vertices": 780,
+        "triangles": 1444,
+        "bulk_components": 3
+      },
+      {
+        "d": 40,
+        "vertices": 861,
+        "triangles": 1600,
+        "bulk_components": 3
+      },
+      {
+        "d": 41,
+        "vertices": 903,
+        "triangles": 1681,
+        "bulk_components": 3
+      },
+      {
+        "d": 43,
+        "vertices": 990,
+        "triangles": 1849,
+        "bulk_components": 3
+      },
+      {
+        "d": 44,
+        "vertices": 1035,
+        "triangles": 1936,
+        "bulk_components": 3
+      },
+      {
+        "d": 46,
+        "vertices": 1128,
+        "triangles": 2116,
+        "bulk_components": 3
+      },
+      {
+        "d": 47,
+        "vertices": 1176,
+        "triangles": 2209,
+        "bulk_components": 3
+      },
+      {
+        "d": 49,
+        "vertices": 1275,
+        "triangles": 2401,
+        "bulk_components": 3
+      },
+      {
+        "d": 50,
+        "vertices": 1326,
+        "triangles": 2500,
+        "bulk_components": 3
+      },
+      {
+        "d": 52,
+        "vertices": 1431,
+        "triangles": 2704,
+        "bulk_components": 3
+      },
+      {
+        "d": 53,
+        "vertices": 1485,
+        "triangles": 2809,
+        "bulk_components": 3
+      },
+      {
+        "d": 55,
+        "vertices": 1596,
+        "triangles": 3025,
+        "bulk_components": 3
+      },
+      {
+        "d": 56,
+        "vertices": 1653,
+        "triangles": 3136,
+        "bulk_components": 3
+      },
+      {
+        "d": 58,
+        "vertices": 1770,
+        "triangles": 3364,
+        "bulk_components": 3
+      },
+      {
+        "d": 59,
+        "vertices": 1830,
+        "triangles": 3481,
+        "bulk_components": 3
+      }
+    ],
+    "counts": {
+      "vertex_equations": 25704,
+      "triangles": 47821,
+      "base_vertex_equations": 1134,
+      "base_triangles": 1892,
+      "all_tied_maximum_moves": 25296
+    },
+    "corners": {
+      "0": {
+        "allowed": 8,
+        "maximum": 4,
+        "solutions": [
+          [
+            [
+              0,
+              0
+            ],
+            [
+              0,
+              3
+            ],
+            [
+              1,
+              1
+            ],
+            [
+              3,
+              0
+            ]
+          ]
+        ]
+      },
+      "1": {
+        "allowed": 7,
+        "maximum": 3,
+        "solutions": [
+          [
+            [
+              0,
+              0
+            ],
+            [
+              0,
+              2
+            ],
+            [
+              2,
+              0
+            ]
+          ],
+          [
+            [
+              0,
+              0
+            ],
+            [
+              0,
+              2
+            ],
+            [
+              2,
+              1
+            ]
+          ],
+          [
+            [
+              0,
+              2
+            ],
+            [
+              1,
+              0
+            ],
+            [
+              2,
+              1
+            ]
+          ]
+        ]
+      },
+      "2": {
+        "allowed": 7,
+        "maximum": 3,
+        "solutions": [
+          [
+            [
+              0,
+              0
+            ],
+            [
+              0,
+              2
+            ],
+            [
+              2,
+              0
+            ]
+          ],
+          [
+            [
+              0,
+              0
+            ],
+            [
+              1,
+              2
+            ],
+            [
+              2,
+              0
+            ]
+          ],
+          [
+            [
+              0,
+              1
+            ],
+            [
+              1,
+              2
+            ],
+            [
+              2,
+              0
+            ]
+          ]
+        ]
+      }
+    },
+    "global_constructions": [
+      {
+        "d": 10,
+        "size": 22,
+        "distinct_constructions": 27
+      },
+      {
+        "d": 11,
+        "size": 26,
+        "distinct_constructions": 27
+      },
+      {
+        "d": 13,
+        "size": 35,
+        "distinct_constructions": 27
+      },
+      {
+        "d": 14,
+        "size": 40,
+        "distinct_constructions": 27
+      },
+      {
+        "d": 16,
+        "size": 51,
+        "distinct_constructions": 27
+      },
+      {
+        "d": 17,
+        "size": 57,
+        "distinct_constructions": 27
+      },
+      {
+        "d": 19,
+        "size": 70,
+        "distinct_constructions": 27
+      },
+      {
+        "d": 20,
+        "size": 77,
+        "distinct_constructions": 27
+      },
+      {
+        "d": 22,
+        "size": 92,
+        "distinct_constructions": 27
+      },
+      {
+        "d": 23,
+        "size": 100,
+        "distinct_constructions": 27
+      },
+      {
+        "d": 25,
+        "size": 117,
+        "distinct_constructions": 27
+      },
+      {
+        "d": 26,
+        "size": 126,
+        "distinct_constructions": 27
+      },
+      {
+        "d": 28,
+        "size": 145,
+        "distinct_constructions": 27
+      },
+      {
+        "d": 29,
+        "size": 155,
+        "distinct_constructions": 27
+      },
+      {
+        "d": 31,
+        "size": 176,
+        "distinct_constructions": 27
+      },
+      {
+        "d": 32,
+        "size": 187,
+        "distinct_constructions": 27
+      }
+    ]
+  }
+}

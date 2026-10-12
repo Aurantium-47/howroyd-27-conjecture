@@ -1,0 +1,29 @@
+{
+  "version": "v0.1.0",
+  "algorithm": "SHA-256",
+  "scope": "Distributed research files, excluding this manifest and Git metadata.",
+  "files": {
+    ".gitattributes": "b948a0cf7ce7ac21479a25f4fa46b92771cf2c3f4215785e3e058cd830ba90a4",
+    ".gitignore": "cc76bef1342fc7a172bb51f0ae8b24556b88eb9812be9776337c7298def0f132",
+    "AI_USAGE.md": "4c688f68b5e733b22ff8833f0c3c4391f24c6f3b56e041de1250a9a7ee3ce3ab",
+    "BUILD_CHECK.md": "ce1bd483d1757e4c562c10dfd18680715e5e4a8bcaff18a344d141bdfba2d9cc",
+    "CHANGELOG.md": "59b9fca24e0d7af26550d8d13053f32cafde7eb0da9b08366a384acb8a90d74c",
+    "README.md": "a0665d5e3c80654dedb2b4bd6136b500250e7a7b82a72b38f438ecb3998ac081",
+    "README.zh-CN.md": "531f953e9e04353e0d6a06f9ddf60f5847bf0b973e01e9950edf4de865550d8b",
+    "editorial_changes.md": "609859b6fa78ae26997291fe5c17e562052614a8a7b05d1326b8c72e840016a5",
+    "howroyd_cover_weights.csv": "631301d8094c269beb3484f82d6ba4d064dca54ab4c8539b2a3ca2eb2f83c0f0",
+    "main.pdf": "9ef5a717b2c86eb24612f7efec6675a54b3bf8b8c0ac825c2229c3f8ea5f7a06",
+    "main.tex": "ac6648315dd22493df18bd5cd93f5266cd06d37784db1bcabee2c5ec34ebdb8c",
+    "referee_checks.py": "08b662bd6e7f3771a18901ee54f68153558093107dda3f396114d6a6b04e109e",
+    "results/certificate.stderr.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "results/certificate.stdout.txt": "7f43e9f86adf2141bd972340df5624851c857eff7d0738863bedc0f2146e24c8",
+    "results/dp.stderr.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "results/dp.stdout.txt": "c01b6431ea856e6b486b09fa8956b8d42159e2b0527c0ad09cb210abe79fa4d7",
+    "results/full_graph_dp.json": "c01b6431ea856e6b486b09fa8956b8d42159e2b0527c0ad09cb210abe79fa4d7",
+    "results/run_summary.json": "ab3874597dd45e5bf5a643e1259a1ea259dd00398a3f73aff95f8aeb5dd424f6",
+    "results/structural.json": "6f2651d21f205c0bfed8149170a2a8842b4ef17e3f8c88ccf9a8b184ed58b7ca",
+    "results/structural.stderr.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "results/structural.stdout.txt": "6f2651d21f205c0bfed8149170a2a8842b4ef17e3f8c88ccf9a8b184ed58b7ca",
+    "verify_howroyd_certificate.py": "974cc770a45e3d327f1bc9ed7fef4e00d1724fc66243ae9405124e98522a5b34"
+  }
+}

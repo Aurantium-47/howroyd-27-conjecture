@@ -1,0 +1,46 @@
+{
+  "python": "3.12.14",
+  "commands": [
+    {
+      "name": "certificate",
+      "command": [
+        "python",
+        "verify_howroyd_certificate.py"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 2.125,
+      "stderr_empty": true
+    },
+    {
+      "name": "structural",
+      "command": [
+        "python",
+        "referee_checks.py",
+        "structural",
+        "--csv",
+        "howroyd_cover_weights.csv",
+        "--output",
+        "results/structural.json"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 2.141,
+      "stderr_empty": true
+    },
+    {
+      "name": "dp",
+      "command": [
+        "python",
+        "referee_checks.py",
+        "dp",
+        "--max-degree",
+        "20",
+        "--output",
+        "results/full_graph_dp.json"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 2.468,
+      "stderr_empty": true
+    }
+  ],
+  "matches_review_results_except_elapsed_time": true
+}

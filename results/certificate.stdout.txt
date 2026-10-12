@@ -1,0 +1,7 @@
+PASS: 89 nonnegative rational weights, denominator 60; 1134 exact vertex-cover equations.
+PASS: zero-support characterization used by the balancing lemma.
+Corner relative color 0: maximum 4, 1 possibilities: [((0, 0), (0, 3), (1, 1), (3, 0))]
+Corner relative color 1: maximum 3, 3 possibilities: [((0, 0), (0, 2), (2, 0)), ((0, 0), (0, 2), (2, 1)), ((0, 2), (1, 0), (2, 1))]
+Corner relative color 2: maximum 3, 3 possibilities: [((0, 0), (0, 2), (2, 0)), ((0, 0), (1, 2), (2, 0)), ((0, 1), (1, 2), (2, 0))]
+PASS: additional 34800 vertex equations and 24684 bulk balancing moves.
+The all-degree conclusion additionally uses the coordinate-reduction and balancing proofs in main.tex.
