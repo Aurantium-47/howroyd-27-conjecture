@@ -503,13 +503,20 @@ use the coordinate reduction and balancing proofs above.
 
 \section{Provenance and verification status}\label{sec:provenance}
 
-The initial argument and certificate arose from exploration with
-ChatGPT Pro. A separate ChatGPT Pro conversation reviewed the
-submitted proof, returned an acceptance verdict, and supplied the
-independent finite-check program. Codex performed faithful editing,
-reference checks, and local reruns of the programs.
-This manuscript has not received human expert review, and there is
-no complete Lean or other proof-assistant formalization.
+AI systems contributed to the mathematical argument, certificate,
+verification programs, and manuscript preparation.
+The argument underwent AI-assisted review, and the verification
+programs were rerun locally with the results described above.
+The \(27\)-count theorem for all \(d\geq10\) with \(3\nmid d\)
+has also been formalized in Lean~4.19.0 using mathlib v4.19.0.
+The source, fixed dependency revisions, and build instructions are
+provided in the repository's \texttt{lean/} directory.
+The final theorem depends only on Lean's standard axioms
+\texttt{propext}, \texttt{Classical.choice}, and \texttt{Quot.sound};
+it uses no unproved placeholders, custom axioms, or native evaluation.
+The cited divisible-by-three branch is not part of this formalization.
+No human expert review or checking by a separate external proof kernel
+has been completed.
 The literature search completed for this draft did not locate an
 earlier proof of the full \(27\)-set statement; that search was not
 exhaustive and does not establish priority.

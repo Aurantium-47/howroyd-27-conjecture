@@ -1,8 +1,8 @@
 # Howroyd's 27-set conjecture: proof and complete classification
 
-**An AI-generated, computer-assisted proof of the remaining 27-set case of a conjecture recorded by Andrew Howroyd in 2018.** This repository contains the mathematical manuscript, an exact rational certificate, and reproducible checks.
+**An AI-generated, computer-assisted proof of the remaining 27-set case of a conjecture recorded by Andrew Howroyd in 2018.** This repository contains the mathematical manuscript, a Lean 4 formalization of the 27-set theorem, an exact rational certificate, and reproducible checks.
 
-[Read the paper (PDF)](main.pdf) · [LaTeX source](main.tex) · [中文介绍](README.zh-CN.md) · [AI use and verification](AI_USAGE.md)
+[Read the paper (PDF)](main.pdf) · [LaTeX source](main.tex) · [Lean formalization](lean/README.md) · [中文介绍](README.zh-CN.md) · [AI use and verification](AI_USAGE.md)
 
 ## An eight-year-old question, with a concrete answer
 
@@ -31,6 +31,7 @@ The classification is explicit: away from three small corners, every maximum set
 ## Proof materials and checks
 
 - [main.pdf](main.pdf) / [main.tex](main.tex): the proof, classification, full 89-entry certificate, references, and verification status.
+- [lean/README.md](lean/README.md): the Lean 4 project and build instructions; [Howroyd/Main.lean](lean/Howroyd/Main.lean) contains the main theorem.
 - [howroyd_cover_weights.csv](howroyd_cover_weights.csv): 89 rational triangle weights, all with denominator 60.
 - [verify_howroyd_certificate.py](verify_howroyd_certificate.py): exact integer checks of the certificate, base equations, and corner cases.
 - [referee_checks.py](referee_checks.py): a separately written structural check and a whole-graph dynamic program.
@@ -48,11 +49,13 @@ All three commands passed locally. Structural checks cover the allowed degrees t
 
 The CSV and referee program are unchanged from the reviewed materials. Only three documentation/output filename references in the original verifier were changed to point to `main.tex`; its algorithm is unchanged.
 
+The Lean 4 formalization proves the 27-set theorem for **every** $d\ge10$ with $3\nmid d$ and has compiled locally. Its reported axiom dependencies are only `propext`, `Classical.choice`, and `Quot.sound`. The known $3\mid d$ branch is not proved in this Lean project. No external independent kernel check or human mathematical expert review has been completed.
+
 ## Public draft and AI research record
 
-**Release status: public research draft, open to corrections.** The submitted proof received an ACCEPT assessment in a separate ChatGPT Pro conversation. This is an AI mathematical review, not journal acceptance or human expert peer review. Full proof-assistant formalization has not been completed.
+**Release status: public research draft, open to corrections.** The mathematical argument and certificate were generated using AI, with AI-assisted review, manuscript preparation, and formalization. The proof has undergone AI mathematical review, the recorded computational checks, and local Lean 4 verification of the 27-set theorem. AI review is not journal acceptance; the formalization does not establish scholarly priority.
 
-The human operator supplied the objective and relayed material. ChatGPT Pro generated the mathematical argument and certificate; a separate Pro conversation reviewed them and supplied additional checks. Codex coordinated source checks, reproduction, and manuscript preparation. See [AI_USAGE.md](AI_USAGE.md) and [editorial_changes.md](editorial_changes.md) for the recorded roles and editing history.
+See [AI_USAGE.md](AI_USAGE.md) for the verification scope and [editorial_changes.md](editorial_changes.md) for mathematical editing notes.
 
 The initial public version is preserved in Git history and a release tag; later corrections will be recorded in [CHANGELOG.md](CHANGELOG.md). A public timestamp records availability of a version; it does not, by itself, establish mathematical correctness or scholarly priority. Please cite a specific commit or release when discussing the result. Concrete corrections and references to prior solutions are welcome through repository issues.
 
