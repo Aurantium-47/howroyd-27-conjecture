@@ -1,0 +1,281 @@
+name: Howroyd Lean 4.19.0 source audit
+
+on:
+  workflow_dispatch:
+
+# AI-assisted verification workflow.
+permissions: {}
+
+jobs:
+  source-audit:
+    if: github.event.repository.private == false && github.repository == 'Aurantium-47/howroyd-27-conjecture'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    env:
+      LEAN_NUM_THREADS: '1'
+      MATHLIB_NO_CACHE_ON_UPDATE: '1'
+    steps:
+      - name: Fetch the fixed public source and Lean release
+        shell: bash
+        run: |
+          set -euo pipefail
+          test ! -e public-source
+          git init public-source
+          git -C public-source remote add origin https://github.com/Aurantium-47/howroyd-27-conjecture.git
+          git -C public-source fetch --depth 1 origin 102bc1b0654f9da45ebb928a8f2c6420991269fa
+          git -C public-source checkout --detach FETCH_HEAD
+          test "$(git -C public-source rev-parse HEAD)" = 102bc1b0654f9da45ebb928a8f2c6420991269fa
+          test "$(tr -d '\r\n' < public-source/lean/lean-toolchain)" = leanprover/lean4:v4.19.0
+          python3 - <<'PY'
+          import hashlib, json, pathlib, shutil, subprocess
+          root = pathlib.Path('public-source')
+          mem = {line.split(':')[0]: int(line.split()[1]) * 1024 for line in pathlib.Path('/proc/meminfo').read_text().splitlines() if line.startswith(('MemTotal:', 'MemAvailable:', 'SwapTotal:', 'SwapFree:'))}
+          print('RUNNER_RESOURCES_BEFORE_SETUP', json.dumps(dict(mem, disk_free=shutil.disk_usage('.').free)), flush=True)
+          assert mem['MemTotal'] >= 14 * 1024**3 and mem['MemAvailable'] >= 12 * 1024**3, 'Insufficient available runner RAM'
+          assert shutil.disk_usage('.').free >= 10 * 1024**3, 'Insufficient free disk; do not prune the runner'
+          paths = subprocess.check_output(['git', '-C', str(root), 'ls-files'], text=True).splitlines()
+          hashes = {p: hashlib.sha256((root / p).read_bytes()).hexdigest() for p in paths}
+          assert len(hashes) == 52
+          assert hashlib.sha256(json.dumps(hashes, sort_keys=True, separators=(',', ':')).encode()).hexdigest() == '5a2e80641733ed865a8c407e9f75082b1ba437dc19840896618ea996efc8b649'
+          pathlib.Path('source-hashes.json').write_text(json.dumps(hashes, sort_keys=True))
+          print('FIXED_SOURCE_SHA256', json.dumps(hashes, sort_keys=True), flush=True)
+          PY
+          curl --fail --location --retry 3 https://github.com/leanprover/lean4/releases/download/v4.19.0/lean-4.19.0-linux.tar.zst --output lean-4.19.0-linux.tar.zst
+          sha256sum lean-4.19.0-linux.tar.zst
+          printf '%s\n' '6fe3ce97a58f44e2b3567d455b994eacec5bfe9ae7774f2a573444480ba813fe  lean-4.19.0-linux.tar.zst' | sha256sum --check
+          tar --zstd -xf lean-4.19.0-linux.tar.zst
+          "$PWD/lean-4.19.0-linux/bin/lean" --version
+          "$PWD/lean-4.19.0-linux/bin/lean" --version | grep -F '4.19.0'
+          "$PWD/lean-4.19.0-linux/bin/lean" --version | grep -F '6caaee842e94'
+          printf '%s\n' '92c3d35b5bfaa5e0fea413a775d504cf46cd95e1345df61c2274f76779e7e023  lean-4.19.0-linux/bin/lean' '5111aee5c9434ab05d4265606475ef22e8bda69aaf3a0657b61a7eec6e550bed  lean-4.19.0-linux/bin/lake' | sha256sum --check
+          printf '%s\n' "$PWD/lean-4.19.0-linux/bin" >> "$GITHUB_PATH"
+          printf 'LEAN_SYSROOT=%s\n' "$PWD/lean-4.19.0-linux" >> "$GITHUB_ENV"
+          free -h
+          df -h .
+
+      - name: Fetch exact dependency revisions without updating the manifest
+        working-directory: public-source/lean
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import hashlib, json, pathlib, subprocess
+          root = pathlib.Path.cwd()
+          manifest = root / 'lake-manifest.json'
+          assert hashlib.sha256(manifest.read_bytes()).hexdigest() == 'cc03337f863f095b1b07e21a12249516b006455c076a211c8228b3dc08b5a3de'
+          print('MANIFEST_SHA256', hashlib.sha256(manifest.read_bytes()).hexdigest())
+          packages = json.loads(manifest.read_text())['packages']
+          assert len(packages) == 9
+          assert next(p for p in packages if p['name'] == 'mathlib')['rev'] == 'c44e0c8ee63ca166450922a373c7409c5d26b00b'
+          for p in packages:
+              assert p['type'] == 'git' and p['url'].startswith('https://github.com/')
+              target = root / '.lake/packages' / p['name']
+              assert not target.exists()
+              target.mkdir(parents=True)
+              subprocess.run(['git', 'init', str(target)], check=True)
+              subprocess.run(['git', '-C', str(target), 'remote', 'add', 'origin', p['url']], check=True)
+              subprocess.run(['git', '-C', str(target), 'fetch', '--depth', '1', 'origin', p['rev']], check=True)
+              subprocess.run(['git', '-C', str(target), 'checkout', '--detach', 'FETCH_HEAD'], check=True)
+              actual = subprocess.check_output(['git', '-C', str(target), 'rev-parse', 'HEAD'], text=True).strip()
+              assert actual == p['rev']
+              print('DEPENDENCY', p['name'], actual)
+              if p['name'] == 'proofwidgets':
+                  subprocess.run(['git', '-C', str(target), 'fetch', '--depth', '1', 'origin',
+                                  'refs/tags/v0.0.57:refs/tags/v0.0.57'], check=True)
+                  release_commit = subprocess.check_output(
+                      ['git', '-C', str(target), 'rev-parse', 'v0.0.57^{commit}'], text=True).strip()
+                  assert release_commit == p['rev']
+                  release_tag = subprocess.check_output(
+                      ['git', '-C', str(target), 'describe', '--tags', '--exact-match', 'HEAD'], text=True).strip()
+                  assert release_tag == 'v0.0.57'
+                  print('RELEASE_TAG', p['name'], release_tag, release_commit)
+          # Keep all downloaded files: disable only the upstream cache helper's directory pruning.
+          helper = root / '.lake/packages/mathlib/Cache/Requests.lean'
+          text = helper.read_text()
+          for old in ['IO.FS.removeDirAll (buildDir / "lib")', 'IO.FS.removeDirAll (buildDir / "ir")']:
+              assert text.count(old) == 1
+              text = text.replace(old, 'pure ()')
+          helper.write_text(text)
+          assert hashlib.sha256(helper.read_bytes()).hexdigest() == '646fed31a48d85ed75746ec09d06c23f5abdaca455518b6760b0dcb2b10c47c0'
+          print('CACHE_HELPER_PATCH_SHA256', hashlib.sha256(helper.read_bytes()).hexdigest())
+          subprocess.run(['git', '-C', str(helper.parents[1]), 'diff', '--', 'Cache/Requests.lean'], check=True)
+          PY
+
+      - name: Obtain precompiled dependencies for the explicit import roots
+        working-directory: public-source/lean
+        shell: bash
+        run: |
+          set -euo pipefail
+          timeout --signal=TERM --kill-after=10s 900 /usr/bin/time -v lake exe cache get Mathlib.Algebra.BigOperators.Group.Finset.Basic Mathlib.Algebra.BigOperators.Group.Finset.Sigma Mathlib.Algebra.Order.BigOperators.Group.Finset Mathlib.Combinatorics.SimpleGraph.Basic Mathlib.Data.Finset.Powerset Mathlib.Data.Finset.Prod Mathlib.Data.Fintype.Fin Mathlib.Data.Fintype.Powerset Mathlib.Data.Fintype.Prod Mathlib.Data.Nat.Dist Mathlib.Tactic.FinCases Mathlib.Tactic.IntervalCases Mathlib.Tactic.Linarith Mathlib.Tactic.NormNum Mathlib.Tactic.SplitIfs
+          git diff --exit-code -- lake-manifest.json lean-toolchain lakefile.toml
+          printf '%s\n' 'TRUST BOUNDARY: external dependency olean files are downloaded caches; they are not source-rebuilt or kernel-replayed by this job.'
+
+      - name: Rebuild original sources and audit complete types and axioms
+        working-directory: public-source/lean
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import hashlib, json, os, pathlib, re, shutil, signal, subprocess, time
+          root = pathlib.Path.cwd()
+          own = ['Howroyd.Basic', 'Howroyd.Geometry', 'Howroyd.Color', 'Howroyd.Balancing', 'Howroyd.Corner', 'Howroyd.CornerGeometry', 'Howroyd.Weights', 'Howroyd.CoverBase', 'Howroyd.LocalCover', 'Howroyd.ExactCover', 'Howroyd.Saturation', 'Howroyd.CornerExtraction', 'Howroyd.Assembly', 'Howroyd.PositiveWeights', 'Howroyd.Propagation', 'Howroyd.Body', 'Howroyd.Classification', 'Howroyd.CornerProducts', 'Howroyd.Counting', 'Howroyd.Main', 'Howroyd', 'Howroyd.GeometryAudit', 'Howroyd.CornerGeometryAudit', 'Howroyd.Audit', 'Howroyd.SemanticAudit']
+          expected_names = ['Howroyd.maxMove_preserves_body', 'Howroyd.exists_terminal', 'Howroyd.body_color_constancy', 'Howroyd.body_color_constancy_of_nondvd', 'Howroyd.Corner.compatible_card_le', 'Howroyd.Corner.compatible_at_bound_iff_table', 'Howroyd.Corner.isMaximum_iff_table', 'Howroyd.Corner.maximum_card', 'Howroyd.Corner.maximum_counts', 'Howroyd.Corner.localColorSet_card', 'Howroyd.Corner.localColorSet_compatible', 'Howroyd.cover_base', 'Howroyd.covered_all', 'Howroyd.legal_key_defined', 'Howroyd.exact_cover', 'Howroyd.exact_cover_of_not_dvd', 'Howroyd.weighted_incidence', 'Howroyd.independent_card_le_colorClass', 'Howroyd.colorClass_maximum', 'Howroyd.maximum_saturates', 'Howroyd.maximum_iff_saturates', 'Howroyd.localCorner_compatible', 'Howroyd.independent_of_localCompatible', 'Howroyd.assembly_card', 'Howroyd.eq_assembly_localCorners', 'Howroyd.localCorner_assembly_zero', 'Howroyd.weight_zero_iff', 'Howroyd.balancing_weights_x', 'Howroyd.maximum_body_color_constancy', 'Howroyd.maximum_one_color_on_body', 'Howroyd.assembled_maximum', 'Howroyd.maximum_localCorner_mem_table', 'Howroyd.maximum_with_body_iff', 'Howroyd.maximum_eq_assembly', 'Howroyd.Corner.choices_card', 'Howroyd.Corner.allChoices_card', 'Howroyd.Corner.choices_card_sum', 'Howroyd.assembleChoice_injective', 'Howroyd.candidates_card', 'Howroyd.maximumIndependentSets_eq_candidates', 'Howroyd.maximum_independent_sets_card', 'Howroyd.howroyd_27', 'Howroyd.mem_vertices', 'Howroyd.mem_triangles', 'Howroyd.triVertices_card', 'Howroyd.triVertices_degree', 'Howroyd.triVertices_clique', 'Howroyd.triVertices_injective_of_valid', 'Howroyd.mem_incidentTriangles_iff', 'Howroyd.triangles_filter_eq_incident', 'Howroyd.sum_incidentTriangles', 'Howroyd.Independent.card_inter_triVertices_le_one', 'Howroyd.color_eq_int_mod', 'Howroyd.color_ne_of_adj', 'Howroyd.colorClass_independent', 'Howroyd.triVertices_filter_color_card', 'Howroyd.colorClass_inter_triangle_card', 'Howroyd.mem_maximumIndependentSets', 'Howroyd.cornerMap_injective', 'Howroyd.mem_cornerVertices', 'Howroyd.degree_partition', 'Howroyd.body_not_inCorner', 'Howroyd.corners_disjoint', 'Howroyd.no_edge_between_corners', 'Howroyd.cornerMap_adjacency', 'Howroyd.outerPoint_in_body', 'Howroyd.corner_body_neighbor_layer', 'Howroyd.cornerMap_color_iff', 'Howroyd.Corner.adjacent_iff_distance', 'Howroyd.Corner.adjacent_iff_barycentric_distance', 'Howroyd.CloudAudit.final_type', 'Howroyd.CloudAudit.named_target', 'Howroyd.CloudAudit.expanded_target']
+          output = root / 'fresh-audit'
+          assert not output.exists()
+          (output / 'lib/Howroyd').mkdir(parents=True)
+          original = json.loads((root.parent.parent / 'source-hashes.json').read_text())
+          libraries = [output / 'lib']
+          for p in json.loads((root / 'lake-manifest.json').read_text())['packages']:
+              package = root / '.lake/packages' / p['name']
+              assert subprocess.check_output(['git', '-C', str(package), 'rev-parse', 'HEAD'], text=True).strip() == p['rev']
+              status = subprocess.check_output(['git', '-C', str(package), 'status', '--porcelain=v1', '--untracked-files=no'], text=True).strip()
+              assert not status or (p['name'] == 'mathlib' and status == 'M Cache/Requests.lean'), status
+              library = package / '.lake/build/lib/lean'
+              if library.is_dir():
+                  libraries.append(library)
+              else:
+                  assert p['name'] == 'Cli'
+          builtins = pathlib.Path(os.environ['LEAN_SYSROOT']) / 'lib/lean'
+          for library in libraries[1:] + [builtins]:
+              assert not (library / 'Howroyd').exists() and not (library / 'Howroyd.olean').exists()
+          env = dict(os.environ, LEAN_PATH=os.pathsep.join(map(str, libraries)), LEAN_NUM_THREADS='1')
+          lean = str(pathlib.Path(os.environ['LEAN_SYSROOT']) / 'bin/lean')
+          flags = ['-j', '1', '-s', '131072', '-DElab.async=false', '-DwarningAsError=true']
+          print('LEAN_PATH', env['LEAN_PATH'], flush=True)
+          print('FLAGS', flags, flush=True)
+          print('CLOUD_BUDGET', '10 GiB sampled aggregate process-group RSS; 512 MiB swap; 2 GiB minimum system available RAM; no retry', flush=True)
+
+          def available():
+              return int(re.search(r'^MemAvailable:\s+(\d+)', pathlib.Path('/proc/meminfo').read_text(), re.M)[1]) * 1024
+
+          def group_memory(group):
+              rss, swap = 0, 0
+              for directory in pathlib.Path('/proc').iterdir():
+                  if not directory.name.isdigit():
+                      continue
+                  try:
+                      stat = (directory / 'stat').read_text().rsplit(')', 1)[1].split()
+                      if int(stat[2]) != group:
+                          continue
+                      status = (directory / 'status').read_text()
+                      rss += int(re.search(r'^VmRSS:\s+(\d+)', status, re.M)[1]) * 1024 if 'VmRSS:' in status else 0
+                      swap += int(re.search(r'^VmSwap:\s+(\d+)', status, re.M)[1]) * 1024 if 'VmSwap:' in status else 0
+                  except (FileNotFoundError, ProcessLookupError):
+                      continue
+              return rss, swap
+
+          def sha(path):
+              h = hashlib.sha256()
+              with path.open('rb') as f:
+                  for data in iter(lambda: f.read(1024 * 1024), b''):
+                      h.update(data)
+              return h.hexdigest()
+
+          def stop_group(group):
+              try:
+                  os.killpg(group, signal.SIGKILL)
+              except ProcessLookupError:
+                  pass
+
+          def run(args, label, seconds=1200):
+              assert available() >= 12 * 1024**3, 'Available RAM preflight failed; no retry'
+              assert shutil.disk_usage(root).free >= 2 * 1024**3, 'Disk preflight failed'
+              log = output / (label + '.log')
+              assert not log.exists()
+              record = dict(command=args, elapsed_seconds=0, max_sampled_group_rss_bytes=0,
+                            max_sampled_group_swap_bytes=0, minimum_system_available_bytes=available(), abort_reason=None)
+              print('COMMAND', args, flush=True)
+              started = time.monotonic()
+              with log.open('wb') as stream, (output / (label + '.memory.jsonl')).open('w') as samples:
+                  process = subprocess.Popen(args, cwd=root, env=env, stdout=stream, stderr=subprocess.STDOUT, start_new_session=True)
+                  try:
+                      while process.poll() is None:
+                          rss, swap = group_memory(process.pid)
+                          free = available()
+                          elapsed = time.monotonic() - started
+                          record['max_sampled_group_rss_bytes'] = max(record['max_sampled_group_rss_bytes'], rss)
+                          record['max_sampled_group_swap_bytes'] = max(record['max_sampled_group_swap_bytes'], swap)
+                          record['minimum_system_available_bytes'] = min(record['minimum_system_available_bytes'], free)
+                          samples.write(json.dumps(dict(seconds=elapsed, group_rss=rss, group_swap=swap, available=free)) + '\n')
+                          samples.flush()
+                          if rss > 10 * 1024**3 or swap > 512 * 1024**2 or free < 2 * 1024**3 or elapsed > seconds:
+                              record['abort_reason'] = 'resource_or_time_guard'
+                              stop_group(process.pid)
+                              break
+                          time.sleep(0.5)
+                  finally:
+                      if process.poll() is None:
+                          stop_group(process.pid)
+                      record['exit_code'] = process.wait()
+                      record['elapsed_seconds'] = time.monotonic() - started
+              (output / (label + '.json')).write_text(json.dumps(record, sort_keys=True))
+              print(log.read_text(errors='replace'), flush=True)
+              print('RESOURCE_RESULT', json.dumps(record, sort_keys=True), flush=True)
+              print('LOG_SHA256', label, sha(log), flush=True)
+              print('EXIT', record['exit_code'], flush=True)
+              assert record['exit_code'] == 0 and record['abort_reason'] is None, 'Stopped; no automatic retry'
+              return log.read_text(errors='replace')
+
+          for name in own:
+              source = root / (name.replace('.', '/') + '.lean')
+              target = output / 'lib' / (name.replace('.', '/') + '.olean')
+              run(['/usr/bin/time', '-v', lean] + flags + ['-o', str(target), str(source)], name)
+              assert target.is_file()
+              assert sha(source) == original['lean/' + name.replace('.', '/') + '.lean']
+              print('SOURCE_SHA256', name, sha(source), 'OLEAN_SHA256', sha(target), flush=True)
+
+          probe = root / 'FreshHowroydAudit.lean'
+          assert not probe.exists()
+          probe.write_text('import Howroyd.Basic\nimport Howroyd.Geometry\nimport Howroyd.Color\nimport Howroyd.Balancing\nimport Howroyd.Corner\nimport Howroyd.CornerGeometry\nimport Howroyd.Weights\nimport Howroyd.CoverBase\nimport Howroyd.LocalCover\nimport Howroyd.ExactCover\nimport Howroyd.Saturation\nimport Howroyd.CornerExtraction\nimport Howroyd.Assembly\nimport Howroyd.PositiveWeights\nimport Howroyd.Propagation\nimport Howroyd.Body\nimport Howroyd.Classification\nimport Howroyd.CornerProducts\nimport Howroyd.Counting\nimport Howroyd.Main\nimport Howroyd\nimport Howroyd.GeometryAudit\nimport Howroyd.CornerGeometryAudit\nimport Howroyd.Audit\nimport Howroyd.SemanticAudit\n\nnamespace Howroyd.CloudAudit\n\nnoncomputable local instance (p : Prop) : Decidable p := Classical.propDecidable p\n\ntheorem final_type : ∀ d : Nat, 10 ≤ d → (¬ 3 ∣ d) →\n    (Howroyd.maximumIndependentSets d).card = 27 :=\n  Howroyd.maximum_independent_sets_card\n\ntheorem named_target : Howroyd.Howroyd27 := Howroyd.howroyd_27\n\n-- A named form of the expanded maximum-cardinality statement.\ntheorem expanded_target (d : Nat) (hd : 10 ≤ d) (hr : ¬ 3 ∣ d) :\n    ((Howroyd.vertices d).powerset.filter fun I =>\n      I ⊆ Howroyd.vertices d ∧ Howroyd.Independent I ∧\n      ∀ J : Finset Howroyd.Vec, J ⊆ Howroyd.vertices d →\n        Howroyd.Independent J → J.card ≤ I.card).card = 27 := by\n  have he : ((Howroyd.vertices d).powerset.filter fun I =>\n      I ⊆ Howroyd.vertices d ∧ Howroyd.Independent I ∧\n      ∀ J : Finset Howroyd.Vec, J ⊆ Howroyd.vertices d →\n        Howroyd.Independent J → J.card ≤ I.card) =\n      Howroyd.maximumIndependentSets d := by\n    ext I\n    simp only [Howroyd.maximumIndependentSets, Howroyd.MaximumIndependent, Finset.mem_filter]\n  rw [he]\n  exact Howroyd.maximum_independent_sets_card d hd hr\n\nend Howroyd.CloudAudit\n\nset_option pp.all true\n#print Howroyd.Vec\n#print Howroyd.Vec.degree\n#print Howroyd.vecBox\n#print Howroyd.vertices\n#print Howroyd.l1Distance\n#print Howroyd.Adj\n#print Howroyd.Independent\n#print Howroyd.MaximumIndependent\n#print Howroyd.maximumIndependentSets\n#print Howroyd.Howroyd27\n#check @Howroyd.maxMove_preserves_body\n#print axioms Howroyd.maxMove_preserves_body\n#check @Howroyd.exists_terminal\n#print axioms Howroyd.exists_terminal\n#check @Howroyd.body_color_constancy\n#print axioms Howroyd.body_color_constancy\n#check @Howroyd.body_color_constancy_of_nondvd\n#print axioms Howroyd.body_color_constancy_of_nondvd\n#check @Howroyd.Corner.compatible_card_le\n#print axioms Howroyd.Corner.compatible_card_le\n#check @Howroyd.Corner.compatible_at_bound_iff_table\n#print axioms Howroyd.Corner.compatible_at_bound_iff_table\n#check @Howroyd.Corner.isMaximum_iff_table\n#print axioms Howroyd.Corner.isMaximum_iff_table\n#check @Howroyd.Corner.maximum_card\n#print axioms Howroyd.Corner.maximum_card\n#check @Howroyd.Corner.maximum_counts\n#print axioms Howroyd.Corner.maximum_counts\n#check @Howroyd.Corner.localColorSet_card\n#print axioms Howroyd.Corner.localColorSet_card\n#check @Howroyd.Corner.localColorSet_compatible\n#print axioms Howroyd.Corner.localColorSet_compatible\n#check @Howroyd.cover_base\n#print axioms Howroyd.cover_base\n#check @Howroyd.covered_all\n#print axioms Howroyd.covered_all\n#check @Howroyd.legal_key_defined\n#print axioms Howroyd.legal_key_defined\n#check @Howroyd.exact_cover\n#print axioms Howroyd.exact_cover\n#check @Howroyd.exact_cover_of_not_dvd\n#print axioms Howroyd.exact_cover_of_not_dvd\n#check @Howroyd.weighted_incidence\n#print axioms Howroyd.weighted_incidence\n#check @Howroyd.independent_card_le_colorClass\n#print axioms Howroyd.independent_card_le_colorClass\n#check @Howroyd.colorClass_maximum\n#print axioms Howroyd.colorClass_maximum\n#check @Howroyd.maximum_saturates\n#print axioms Howroyd.maximum_saturates\n#check @Howroyd.maximum_iff_saturates\n#print axioms Howroyd.maximum_iff_saturates\n#check @Howroyd.localCorner_compatible\n#print axioms Howroyd.localCorner_compatible\n#check @Howroyd.independent_of_localCompatible\n#print axioms Howroyd.independent_of_localCompatible\n#check @Howroyd.assembly_card\n#print axioms Howroyd.assembly_card\n#check @Howroyd.eq_assembly_localCorners\n#print axioms Howroyd.eq_assembly_localCorners\n#check @Howroyd.localCorner_assembly_zero\n#print axioms Howroyd.localCorner_assembly_zero\n#check @Howroyd.weight_zero_iff\n#print axioms Howroyd.weight_zero_iff\n#check @Howroyd.balancing_weights_x\n#print axioms Howroyd.balancing_weights_x\n#check @Howroyd.maximum_body_color_constancy\n#print axioms Howroyd.maximum_body_color_constancy\n#check @Howroyd.maximum_one_color_on_body\n#print axioms Howroyd.maximum_one_color_on_body\n#check @Howroyd.assembled_maximum\n#print axioms Howroyd.assembled_maximum\n#check @Howroyd.maximum_localCorner_mem_table\n#print axioms Howroyd.maximum_localCorner_mem_table\n#check @Howroyd.maximum_with_body_iff\n#print axioms Howroyd.maximum_with_body_iff\n#check @Howroyd.maximum_eq_assembly\n#print axioms Howroyd.maximum_eq_assembly\n#check @Howroyd.Corner.choices_card\n#print axioms Howroyd.Corner.choices_card\n#check @Howroyd.Corner.allChoices_card\n#print axioms Howroyd.Corner.allChoices_card\n#check @Howroyd.Corner.choices_card_sum\n#print axioms Howroyd.Corner.choices_card_sum\n#check @Howroyd.assembleChoice_injective\n#print axioms Howroyd.assembleChoice_injective\n#check @Howroyd.candidates_card\n#print axioms Howroyd.candidates_card\n#check @Howroyd.maximumIndependentSets_eq_candidates\n#print axioms Howroyd.maximumIndependentSets_eq_candidates\n#check @Howroyd.maximum_independent_sets_card\n#print axioms Howroyd.maximum_independent_sets_card\n#check @Howroyd.howroyd_27\n#print axioms Howroyd.howroyd_27\n#check @Howroyd.mem_vertices\n#print axioms Howroyd.mem_vertices\n#check @Howroyd.mem_triangles\n#print axioms Howroyd.mem_triangles\n#check @Howroyd.triVertices_card\n#print axioms Howroyd.triVertices_card\n#check @Howroyd.triVertices_degree\n#print axioms Howroyd.triVertices_degree\n#check @Howroyd.triVertices_clique\n#print axioms Howroyd.triVertices_clique\n#check @Howroyd.triVertices_injective_of_valid\n#print axioms Howroyd.triVertices_injective_of_valid\n#check @Howroyd.mem_incidentTriangles_iff\n#print axioms Howroyd.mem_incidentTriangles_iff\n#check @Howroyd.triangles_filter_eq_incident\n#print axioms Howroyd.triangles_filter_eq_incident\n#check @Howroyd.sum_incidentTriangles\n#print axioms Howroyd.sum_incidentTriangles\n#check @Howroyd.Independent.card_inter_triVertices_le_one\n#print axioms Howroyd.Independent.card_inter_triVertices_le_one\n#check @Howroyd.color_eq_int_mod\n#print axioms Howroyd.color_eq_int_mod\n#check @Howroyd.color_ne_of_adj\n#print axioms Howroyd.color_ne_of_adj\n#check @Howroyd.colorClass_independent\n#print axioms Howroyd.colorClass_independent\n#check @Howroyd.triVertices_filter_color_card\n#print axioms Howroyd.triVertices_filter_color_card\n#check @Howroyd.colorClass_inter_triangle_card\n#print axioms Howroyd.colorClass_inter_triangle_card\n#check @Howroyd.mem_maximumIndependentSets\n#print axioms Howroyd.mem_maximumIndependentSets\n#check @Howroyd.cornerMap_injective\n#print axioms Howroyd.cornerMap_injective\n#check @Howroyd.mem_cornerVertices\n#print axioms Howroyd.mem_cornerVertices\n#check @Howroyd.degree_partition\n#print axioms Howroyd.degree_partition\n#check @Howroyd.body_not_inCorner\n#print axioms Howroyd.body_not_inCorner\n#check @Howroyd.corners_disjoint\n#print axioms Howroyd.corners_disjoint\n#check @Howroyd.no_edge_between_corners\n#print axioms Howroyd.no_edge_between_corners\n#check @Howroyd.cornerMap_adjacency\n#print axioms Howroyd.cornerMap_adjacency\n#check @Howroyd.outerPoint_in_body\n#print axioms Howroyd.outerPoint_in_body\n#check @Howroyd.corner_body_neighbor_layer\n#print axioms Howroyd.corner_body_neighbor_layer\n#check @Howroyd.cornerMap_color_iff\n#print axioms Howroyd.cornerMap_color_iff\n#check @Howroyd.Corner.adjacent_iff_distance\n#print axioms Howroyd.Corner.adjacent_iff_distance\n#check @Howroyd.Corner.adjacent_iff_barycentric_distance\n#print axioms Howroyd.Corner.adjacent_iff_barycentric_distance\n#check @Howroyd.CloudAudit.final_type\n#print axioms Howroyd.CloudAudit.final_type\n#check @Howroyd.CloudAudit.named_target\n#print axioms Howroyd.CloudAudit.named_target\n#check @Howroyd.CloudAudit.expanded_target\n#print axioms Howroyd.CloudAudit.expanded_target\n')
+          assert sha(probe) == 'e53bc76242982b84e12179ba338fcae1c181e406eca99f986a932ecae87154e0'
+          print('PROBE_SHA256', sha(probe), flush=True)
+          resolved = run([lean, '--deps', str(probe)], 'actual-imports', 120)
+          deps = [pathlib.Path(s.strip()).resolve() for s in resolved.splitlines() if s.strip()]
+          for name in own:
+              assert deps.count((output / 'lib' / (name.replace('.', '/') + '.olean')).resolve()) == 1
+          for dep in deps:
+              assert dep.is_file()
+              assert dep.is_relative_to((output / 'lib').resolve()) or dep.is_relative_to(builtins.resolve()), dep
+              print('ACTUAL_IMPORT_SHA256', str(dep), sha(dep), flush=True)
+
+          # Also resolve direct external roots from every source, recording the chosen cached olean.
+          recorded = set(deps)
+          for name in own:
+              source = root / (name.replace('.', '/') + '.lean')
+              text = run([lean, '--deps', str(source)], name + '.deps', 120)
+              for line in text.splitlines():
+                  if not line.strip():
+                      continue
+                  dep = pathlib.Path(line.strip()).resolve()
+                  assert any(dep.is_relative_to(p.resolve()) for p in libraries + [builtins]), dep
+                  if dep not in recorded:
+                      print('ACTUAL_IMPORT_SHA256', str(dep), sha(dep), flush=True)
+                      recorded.add(dep)
+
+          text = run(['/usr/bin/time', '-v', lean] + flags + ['-o', str(output / 'lib/FreshHowroydAudit.olean'), str(probe)], 'complete-types-axioms')
+          observed = {}
+          for name, axioms in re.findall(r"^'([^']+)' depends on axioms: \[([^\]]*)\]", text, re.M):
+              assert name not in observed
+              observed[name] = [a.strip() for a in axioms.split(',') if a.strip()]
+          for name in re.findall(r"^'([^']+)' does not depend on any axioms", text, re.M):
+              assert name not in observed
+              observed[name] = []
+          assert set(observed) == set(expected_names)
+          assert all(set(a) <= {'propext', 'Classical.choice', 'Quot.sound'} for a in observed.values())
+          for name in expected_names:
+              matches = re.findall(r'^@?' + re.escape(name) + r'(?:\s|\.{|\(|\{|\[|:)', text, re.M)
+              assert len(matches) == 1, ('Missing or duplicate full signature', name)
+          print('FINAL_AXIOMS_JSON', json.dumps(observed, sort_keys=True), flush=True)
+          assert all(sha(root.parent / path) == value for path, value in original.items())
+          subprocess.run(['git', 'diff', '--exit-code', 'HEAD', '--'], cwd=root.parent, check=True)
+          print('PASS: 20 theorem-dependency modules, the aggregate, and four audit sources freshly compiled; all 25 imports resolved to fresh outputs; expected full types and standard-axiom results observed.', flush=True)
+          print('SCOPE: d >= 10 and 3 does not divide d; 27 labeled maximum-cardinality independent sets. The divisible branch is not formalized here.', flush=True)
+          print('NOT PERFORMED: dependency source rebuild, independent kernel check, mathematical priority review.', flush=True)
+          PY
+
+      - name: Final runner resources
+        if: always()
+        shell: bash
+        run: |
+          free -b
+          df -B1 .
